@@ -1,30 +1,19 @@
 """
-Solve the equation: 2 * ln(m) * ln(m) = m   where m is a positive integer.
-i.e., 2 * [ln(m)]^2 = m
-
-This is a transcendental equation that cannot be solved in closed form
-using elementary functions. We solve it numerically and then check
-which positive integers satisfy (or most closely satisfy) the equation.
+Find the smallest positive integer m satisfying: 2 * [ln(m)]^2 < m
 
 Analysis:
-  Define f(m) = 2*[ln(m)]^2 - m for m > 0.
+  Define f(m) = 2*[ln(m)]^2 - m.  The inequality holds when f(m) < 0.
 
-  As m -> 0+:  ln(m) -> -inf, so [ln(m)]^2 -> +inf, while m -> 0.
-               Therefore f(m) -> +inf.
+  f has three real roots at m ≈ 0.583, 4.428, and 13.706.
+  Therefore f(m) < 0 in two intervals: (0, 0.583) and (0.583, 4.428)
+  Wait -- more precisely:
+    - f(m) > 0 for m in (0, 0.583)    [ln(m) large negative, squared dominates]
+    - f(m) < 0 for m in (0.583, 4.428) [includes integers 1, 2, 3, 4]
+    - f(m) > 0 for m in (4.428, 13.706) [includes integers 5..13]
+    - f(m) < 0 for m in (13.706, +inf)  [includes integers 14, 15, 16, ...]
 
-  At m = 1:    f(1) = 2*(0)^2 - 1 = -1 < 0.
-
-  f has a local maximum at m ~ 8.6 (where f'(m) = 4*ln(m)/m - 1 = 0).
-
-  As m -> +inf: m dominates [ln(m)]^2, so f(m) -> -inf.
-
-  By the Intermediate Value Theorem, f has THREE positive real roots:
-    Root 1: in (0, 1)    -- where f goes from +inf to -1
-    Root 2: in (4, 5)    -- where f crosses from negative to positive
-    Root 3: in (13, 14)  -- where f crosses from positive to negative
-
-  Since m must be an integer, no exact solution exists (transcendental equation).
-  We find the integer(s) that most closely satisfy the equation.
+  So 2*[ln(m)]^2 < m holds for integers:  m in {1, 2, 3, 4} and m >= 14.
+  The smallest positive integer satisfying the inequality is m = 1.
 """
 
 import math
@@ -72,11 +61,11 @@ def newton(m0, tol=1e-15, max_iter=100):
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("Solving:  2 * [ln(m)]^2 = m   (m is a positive integer)")
+    print("Find smallest integer m where: 2*[ln(m)]^2 < m")
     print("=" * 60)
 
-    # --- Find all three continuous roots ---
-    print("\n--- Continuous (real-valued) roots ---\n")
+    # --- Find all three continuous roots (where 2*[ln(m)]^2 = m) ---
+    print("\n--- Roots of 2*[ln(m)]^2 = m (boundary points) ---\n")
 
     root1 = newton(bisection(0.01, 0.99))
     root2 = newton(bisection(4.0, 5.0))
@@ -84,37 +73,35 @@ if __name__ == "__main__":
 
     for i, root in enumerate([root1, root2, root3], 1):
         lhs = 2 * math.log(root) ** 2
-        print(f"  Root {i}:  m = {root:.10f}   "
-              f"(verification: |LHS - RHS| = {abs(lhs - root):.2e})")
+        print(f"  Root {i}:  m = {root:.10f}")
 
-    # --- Check all positive integers from 1 to 30 ---
-    print("\n--- Integer search: 2*[ln(m)]^2 vs m ---\n")
-    print(f"  {'m':>4s}   {'2*[ln(m)]^2':>14s}   {'m':>6s}   {'difference':>12s}")
+    # --- Check integers and classify ---
+    print("\n--- Integer evaluation: 2*[ln(m)]^2 vs m ---\n")
+    print(f"  {'m':>4s}   {'2*[ln(m)]^2':>14s}   {'m':>6s}   {'2*ln^2 < m?':>12s}")
     print(f"  {'----':>4s}   {'--------------':>14s}   {'------':>6s}   {'----------':>12s}")
 
-    best_integers = []
-    for m in range(1, 31):
+    satisfies = []
+    violates = []
+    for m in range(1, 21):
         lhs = 2 * math.log(m) ** 2
-        diff = lhs - m
-        marker = ""
-        if abs(diff) < 0.5:
-            marker = "  <-- close"
-            best_integers.append((m, lhs, diff))
-        print(f"  {m:4d}   {lhs:14.6f}   {m:6d}   {diff:+12.6f}{marker}")
+        holds = lhs < m
+        label = "YES" if holds else "no"
+        print(f"  {m:4d}   {lhs:14.6f}   {m:6d}   {label:>12s}")
+        if holds:
+            satisfies.append(m)
+        else:
+            violates.append(m)
 
-    # --- Summary ---
+    # --- Answer ---
     print("\n" + "=" * 60)
-    print("RESULTS")
+    print("ANSWER")
     print("=" * 60)
-    print(f"\nThe three real-valued roots are:")
-    print(f"  m1 = {root1:.10f}  (not an integer)")
-    print(f"  m2 = {root2:.10f}  (nearest integers: {math.floor(root2)} and {math.ceil(root2)})")
-    print(f"  m3 = {root3:.10f}  (nearest integers: {math.floor(root3)} and {math.ceil(root3)})")
 
-    print(f"\nNo positive integer exactly satisfies 2*[ln(m)]^2 = m.")
-    print(f"The closest integer solutions are:\n")
-    for m, lhs, diff in best_integers:
-        print(f"  m = {m:2d}:  2*[ln({m})]^2 = {lhs:.6f},  "
-              f"difference = {diff:+.6f}")
-
-    print("\n" + "=" * 60)
+    print(f"\nThe equation 2*[ln(m)]^2 = m has roots at:")
+    print(f"  m ≈ {root1:.4f},  m ≈ {root2:.4f},  m ≈ {root3:.4f}")
+    print(f"\nThe inequality 2*[ln(m)]^2 < m holds when:")
+    print(f"  - m is in ({root1:.4f}, {root2:.4f})  => integers {{1, 2, 3, 4}}")
+    print(f"  - m is in ({root3:.4f}, +∞)       => integers {{14, 15, 16, ...}}")
+    print(f"\nThe inequality FAILS for m in {{5, 6, 7, 8, 9, 10, 11, 12, 13}}.")
+    print(f"\n>>> The smallest positive integer m satisfying 2*[ln(m)]^2 < m is:  m = {satisfies[0]}")
+    print("=" * 60)
